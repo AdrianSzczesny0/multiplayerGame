@@ -1,4 +1,5 @@
 
+const login_modal = document.getElementById('login_modal');
 const show_hide_password_button = document.getElementById('show_hide_password');
 let is_password_shown = false;
 const username_input =  document.getElementById('username');
@@ -44,22 +45,7 @@ async function processLogin(){
         "name":username,
         "password":password
     }
-    const response = await sendRequest("auth",'POST',requestBody);
-
-    
-
-
-    // await console.log('RESPONSE: '+response);
-    // if(pass.length <6){
-
-    //     console.log('password < 6 chars');
-    
-        // await createNotyBar('error','Incorrect username or password');
-        // const noty = await document.getElementById('noty');
-        // fadeIn(noty);
-        // await delay(1500);
-        // fadeout(noty);
-    // }
+    await sendRequest("auth",'POST',requestBody);
 }
 
 async function createNotyBar(type,message){
@@ -92,11 +78,19 @@ for (let index = 0; index <10; index++) {
   element.style.opacity = index/10;
 }
 }
-async function fadeout(element){
-for (let index = 10; index >0; index--) {
-  await delay(50);
-  element.style.opacity = index/20;
+async function fadeout(element,iterations){
+if (iterations == undefined){
+    for (let index = 10; index >0; index--) {
+        await delay(20);
+        element.style.opacity = index/20;
+      }
+}else{
+    for (let index = iterations; index >0; index--) {
+        await delay(20);
+        element.style.opacity = index/20;
+      }
 }
+
 element.remove();
 }
 
@@ -109,14 +103,6 @@ async function sendRequest(route,requestMethod,requestBody){
         },
         body: JSON.stringify(requestBody)
     }).then(response => {
-        // if (response.ok){
-        //     console.log('authenticated');
-        //     console.log(JSON.stringify(response.body));
-        //     // const data = response.json();
-        //     // createNoty('success',data);
-        // }else{
-        //     console.log('unauthorized');
-        // }
         return response.json();
     }).then(data => {
         console.log(data);
@@ -126,25 +112,17 @@ async function sendRequest(route,requestMethod,requestBody){
         }else{
             console.log('USER AUTHORIZED');
             createNoty('success',data.message);
+            addLocalStorageValue('auth',data.token);
+            addLocalStorageValue('userName',requestBody.name);
+            fadeOutModal(login_modal,20);
+            
         }
-        
     });
-
-
-        // if (!response.ok) {
-        // //   throw new Error('Network response was not ok');
-        // }
-        // return response.json();
-    // }).then(data => {
-    //     console.log(data);
-    //     // createNotyBar('error', 'Incorrect username or password.');
-    //     return data;
-    // }).catch(error => {
-    //     console.error('Error:', error);
-    //     return data;
-    // });
-    // await createNotyBar('error','test123');
 }
+async function addLocalStorageValue(key,value){
+    window.localStorage.setItem(key, value);
+}
+
 async function createNoty(type,message){
     console.log('CREATE NOTY BAR');
     const noty = await createNotyBar(type,message);
@@ -152,4 +130,20 @@ async function createNoty(type,message){
     await delay(1500);
     await fadeout(noty);
 }
+async function fadeOutModal(element,iterations){
+    await fadeout(element,iterations);
+    await element.remove();
+}
 
+
+
+// initializ check user auth
+function init(){
+    const authStatus = window.localStorage.getItem('token');
+    if( authStatus == 'Test123'){
+        console.log('INIT - USER AUTHENTICATED');
+        window.location.href = "main.html";
+    }else{
+        console.log('INIT -  USER NOT AUTHENTICATED');
+    }
+}

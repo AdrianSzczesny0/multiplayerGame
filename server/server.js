@@ -1,3 +1,5 @@
+const { v4 } = require('uuid');
+
 
 const path = require('path');
 const http = require("http");
@@ -97,7 +99,8 @@ app.post('/auth', (request,response) =>{
                     response.status(201);
                     response.send({
                         status:"authorized",
-                        message:"User successfully logged in."
+                        message:"User successfully logged in.",
+                        token: `${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}`
                     });
                 }else{
                     response.status(401);
@@ -145,3 +148,6 @@ server.listen(port, () =>{
 function log(value){
     console.log(value);
 }
+
+let myuuid = v4();
+console.log(myuuid);
