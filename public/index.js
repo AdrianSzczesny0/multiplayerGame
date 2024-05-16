@@ -6,7 +6,7 @@ const username_input =  document.getElementById('username');
 const password_input = document.getElementById('password');
 const submit_button =  document.getElementById('submit');
 const reset_password_button = document.getElementById('reset_password');
-
+let is_user_logged_in = false;
 show_hide_password_button.addEventListener('click', e => {
     showOrHidePassword();
 });
@@ -15,7 +15,6 @@ reset_password_button.addEventListener('click', e => {
     openResetPasswordPage();
 });
 submit_button.addEventListener('click', e => {
-    // sendRequest('test','POST',{"name":"Adrian"});
     processLogin();
 });
 
@@ -111,17 +110,19 @@ async function sendRequest(route,requestMethod,requestBody){
             createNoty('error',data.message);
         }else{
             console.log('USER AUTHORIZED');
-            createNoty('success',data.message);
-            addLocalStorageValue('auth',data.token);
-            addLocalStorageValue('userName',requestBody.name);
-            fadeOutModal(login_modal,20);
-            
+            handleSucessfullLogin(data,requestBody.name);
         }
     });
 }
 async function addLocalStorageValue(key,value){
     window.localStorage.setItem(key, value);
 }
+async function handleSucessfullLogin(data,user_name){
+    addLocalStorageValue('auth',data.token);
+    addLocalStorageValue('userName',user_name);
+    init();
+}
+
 
 async function createNoty(type,message){
     console.log('CREATE NOTY BAR');
@@ -135,15 +136,45 @@ async function fadeOutModal(element,iterations){
     await element.remove();
 }
 
-
-
-// initializ check user auth
-function init(){
-    const authStatus = window.localStorage.getItem('token');
-    if( authStatus == 'Test123'){
-        console.log('INIT - USER AUTHENTICATED');
-        window.location.href = "main.html";
-    }else{
-        console.log('INIT -  USER NOT AUTHENTICATED');
+async function init(){
+    const requestBody = {
+        token: await window.localStorage.getItem('auth'),
+        username: await window.localStorage.getItem('userName')
     }
+    console.log(JSON.stringify(requestBody));
+
+    await fetch(`/isAuth`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+    }).then(response => {
+        return response.json();
+    }).then(data => {
+        console.log(data);
+        if( data.status == "unauthorized" ){
+            console.log('USER UNAUTHORIZED');
+        }else{
+            console.log('USER AUTHORIZED');
+            createNoty('success','User successfully logged in.');
+            fadeOutModal(login_modal,20);
+            is_user_logged_in = true;
+        }
+    });
 }
+async function handlEnter(){
+    document.body.addEventListener("keydown", (ev) =>{
+        if(!is_user_logged_in){
+            if(ev.key=='Enter'){
+                processLogin();
+            }
+        }
+    });
+}
+
+
+handlEnter();
+init();
+

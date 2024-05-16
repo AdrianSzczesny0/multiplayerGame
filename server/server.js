@@ -73,17 +73,45 @@ app.get('/test', (req,res) =>{
     });
     client.end();
 });
+app.post('/isAuth', (request,response) =>{
+    const requestBody = request.body;
+    console.log(`IS AUTH: ${JSON.stringify(requestBody)}`);
+    let query = `SELECT token FROM public.users WHERE name='${requestBody.username}';`
+    console.log(`QUERY: ${query}`);
+
+       
+    client.query(query,(err, result)=>{
+        if ( !err ){
+            log(`QUERY RESULT: ${JSON.stringify(result)}`);
+            if ( result.rowCount == 0 ){
+                response.status(200);
+                response.send({
+                    status:"unauthorized"
+                });
+            }else{
+                if ( result.rows[0].token == request.body.token ){
+                    response.status(200);
+                    response.send({
+                        status:"authorized"
+                    });
+                }else{
+                    response.status(200);
+                    response.send({
+                        status:"unauthorized"
+                    });
+                }
+
+            }
+        }
+    });
+
+})
 
 app.post('/auth', (request,response) =>{
     const requestBody = request.body;
     console.log('NAME:'+requestBody.name);
     let query = `SELECT password FROM public.users WHERE name='${requestBody.name}';`
     console.log(`QUERY: ${query}`);
-    // console.log(`REQUEST BODY: ${JSON.stringify(request.body)}`);
-    // console.log('NAME:'+request.body.name);
-    // console.log('PASSWORD:'+request.body.password);
-    // const validation = loginValidation(request.body);
-    // console.log(validation);
     
     client.query(query,(err, result)=>{
         if ( !err ){
@@ -96,12 +124,14 @@ app.post('/auth', (request,response) =>{
                 });
             }else{
                 if ( result.rows[0].password == request.body.password ){
+                    const _token  = `${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}`;
                     response.status(201);
                     response.send({
                         status:"authorized",
                         message:"User successfully logged in.",
-                        token: `${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}-${v4()}`
+                        token: _token
                     });
+                    setPlayerAuthToken(requestBody.name,_token);
                 }else{
                     response.status(401);
                     response.send({
@@ -113,8 +143,34 @@ app.post('/auth', (request,response) =>{
             }
         }
     });
-
 });
+function setPlayerAuthToken(playerName,token){
+    let query = `Update public.users SET token = '${token}' WHERE name = '${playerName}';`
+    console.log(`playerName: ${playerName} , token: ${token}`);
+    console.log('=================================================================');
+    console.log('QUERY:');
+    console.log(query);
+    console.log('');
+    console.log('=================================================================');
+    client.query(query,(err, result)=>{
+        if ( !err ){
+            console.log();
+            console.log('=================================================================');
+            console.log('QUERY RESULT: ');
+            console.log(result);
+            // if ( result.rowCount == 0 ){
+            //     response.status(401);
+            //     response.send({
+            //         status:"unauthorized",
+            //         message:"Incorrect user name or password."
+            //     });
+            // }else{
+            // }
+        }
+    });
+}
+
+
 app.use(express.static(publicPath));
 
 

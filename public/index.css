@@ -3,7 +3,7 @@ body{
 }
 .main{
     display:flex;
-    height:400px;
+    height:550px;
 }
 .window_wrapper{
     position:relative;
@@ -16,14 +16,19 @@ body{
     background-color: rgb(250, 250, 250);
 }
 .form_wrapper{
+    height:90%;
     top: 5%;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-content: center;
     flex-direction: column;
     align-items: center;
     position: relative;
 
+}
+.sign_up_wrapper{
+    height:100%;
+    justify-content: flex-end;
 }
 .input_wrapper{
     display: flex;
@@ -170,3 +175,19 @@ h1{
 .noty_icon_wrapper{
     padding-left:5%;
 }
+.sign_up{
+    padding-top: 10px;
+}
+.sign_up:hover{
+    color:#60b0e1;
+    cursor:pointer;
+}
+hr {
+    border: 0;
+    clear:both;
+    display:block;
+    width: 96%;               
+    background-color:#60b0e1;
+    opacity: 0.5;
+    height: 1px;
+  }
