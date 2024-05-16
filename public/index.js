@@ -7,6 +7,7 @@ const password_input = document.getElementById('password');
 const submit_button =  document.getElementById('submit');
 const reset_password_button = document.getElementById('reset_password');
 let is_user_logged_in = false;
+
 show_hide_password_button.addEventListener('click', e => {
     showOrHidePassword();
 });
@@ -32,20 +33,84 @@ function showOrHidePassword(){
         is_password_shown = false;
     }
 }
-function testReturn(){
-    return 'DUPA';
-};
-console.log(testReturn());
 
 async function processLogin(){
-    const username = username_input.value;
-    const password = password_input.value;
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
     const requestBody = {
         "name":username,
         "password":password
     }
     await sendRequest("auth",'POST',requestBody);
 }
+async function createLoginFormView(){
+    const loginFormView = `
+    <div class="main" id="login_modal">
+        <div class="window_wrapper">
+            <div class="form_wrapper">
+                <h1>LOGIN</h1>
+                <div class="input_wrapper">
+                    <span class="fieldName">Username</span>
+                    <input class="input username" id="username" type="text" placeholder="Input username"></input>
+                </div>
+                <div class="input_wrapper no_bot_padding">
+                    <span class="fieldName">Password</span>
+                    <input class="input password" id="password" type="text" placeholder="Input password"></input>
+                    <i class="fa-solid fa-eye-slash" id="show_hide_password"></i>
+
+                </div>
+                <div class="input_wrapper reset">
+                    <span class="reset_button" id="reset_password">Reset password</span>
+                </div>
+                <div class="input_wrapper">
+                    <button class="submit" id="submit" onClick="processLogin();">Submit</button>
+                    
+                </div>
+                <div class="input_wrapper sign_up_wrapper">
+                    <hr></hr>
+                    <span class="sign_up" id="sign_up"> SIGN UP</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    const template = document.createElement('template');
+    template.innerHTML = loginFormView.trim();
+    view = template.content.firstElementChild;
+    document.body.appendChild(view);
+}
+
+async function createGameView(){
+    const loggedInView = `    
+    <div class="main_logged_in" id="main_logged_in">
+        <div class="header_wrapper">
+            <span class="logout_button" id="logout_button" onclick="logout();">Log out</span>
+        </div>
+        <div class="game_wrapper">
+            <canvas id="game_canvas" class="game_canvas"></canvas>
+        </div>
+    </div>`;
+    const template = document.createElement('template');
+    template.innerHTML = loggedInView.trim();
+    view = template.content.firstElementChild;
+    await delay(1000);
+    document.body.appendChild(view);
+}
+
+async function removeGameView(){
+    const gameView = await document.getElementById("main_logged_in");
+    await fadeout(gameView);
+}
+
+async function logout(){
+    await removeLocalStorageValue('userName');
+    await removeLocalStorageValue('auth');
+    await removeGameView();
+    await createLoginFormView();
+    is_user_logged_in=false;
+}
+
 
 async function createNotyBar(type,message){
     const noty = await document.getElementById('noty');
@@ -117,6 +182,9 @@ async function sendRequest(route,requestMethod,requestBody){
 async function addLocalStorageValue(key,value){
     window.localStorage.setItem(key, value);
 }
+async function removeLocalStorageValue(key){
+    window.localStorage.removeItem(key);
+}
 async function handleSucessfullLogin(data,user_name){
     addLocalStorageValue('auth',data.token);
     addLocalStorageValue('userName',user_name);
@@ -159,8 +227,9 @@ async function init(){
         }else{
             console.log('USER AUTHORIZED');
             createNoty('success','User successfully logged in.');
-            fadeOutModal(login_modal,20);
+            fadeOutModal(document.getElementById('login_modal'),20);
             is_user_logged_in = true;
+            createGameView();
         }
     });
 }
