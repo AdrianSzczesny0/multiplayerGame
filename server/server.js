@@ -65,18 +65,15 @@ app.get('/test', (req,res) =>{
     client.query('SELECT * FROM public.users;',(err, result)=>{
         if ( !err ){
             console.log(JSON.stringify(result.rows));
-            // res.status(200).send({
-            //     message: JSON.stringify(result.rows)
-            // })
-
         }
     });
     client.end();
 });
+
 app.post('/isAuth', (request,response) =>{
     const requestBody = request.body;
     console.log(`IS AUTH: ${JSON.stringify(requestBody)}`);
-    let query = `SELECT token FROM public.users WHERE name='${requestBody.username}';`
+    let query = `SELECT token FROM public.users WHERE email='${requestBody.email}';`
     console.log(`QUERY: ${query}`);
 
        
@@ -109,8 +106,8 @@ app.post('/isAuth', (request,response) =>{
 
 app.post('/auth', (request,response) =>{
     const requestBody = request.body;
-    console.log('NAME:'+requestBody.name);
-    let query = `SELECT password FROM public.users WHERE name='${requestBody.name}';`
+    console.log('Email:'+requestBody.email);
+    let query = `SELECT password FROM public.users WHERE email='${requestBody.email}';`
     console.log(`QUERY: ${query}`);
     
     client.query(query,(err, result)=>{
@@ -131,7 +128,7 @@ app.post('/auth', (request,response) =>{
                         message:"User successfully logged in.",
                         token: _token
                     });
-                    setPlayerAuthToken(requestBody.name,_token);
+                    setPlayerAuthToken(requestBody.email,_token);
                 }else{
                     response.status(401);
                     response.send({
@@ -144,9 +141,59 @@ app.post('/auth', (request,response) =>{
         }
     });
 });
-function setPlayerAuthToken(playerName,token){
-    let query = `Update public.users SET token = '${token}' WHERE name = '${playerName}';`
-    console.log(`playerName: ${playerName} , token: ${token}`);
+
+app.post('/register', (request,response) =>{
+    console.log('REGISTER WAS SEND');
+    const requestBody = request.body;
+    console.log('EMAIL:'+requestBody.email);
+    let query = `SELECT email FROM public.users WHERE email='${requestBody.email}';`
+    console.log(`QUERY: ${query}`);
+    
+
+    client.query(query,(err, result)=>{
+        if ( !err ){
+            log(`QUERY RESULT: ${JSON.stringify(result)}`);
+            if ( result.rowCount == 0 ){
+                if ( requestBody.password.length >=6){
+                    if ( requestBody.password == requestBody.rePass){
+                        response.status(201);
+                        response.send({
+                            status:"success",
+                            message:"User succesfully created."
+                        });
+                        createNewUser(requestBody);
+
+                    }else{
+                        response.status(400);
+                        response.send({
+                            status:"fail",
+                            message:"Passwords don't match"
+                        });
+                    }
+                }else{
+                    response.status(400);
+                    response.send({
+                        status:"fail",
+                        message:"Passwords to short"
+                    });
+                }
+
+            }else{
+                response.status(400);
+                response.send({
+                    status:"fail",
+                    message:"User with given email already exists."
+                });
+            }
+        }
+    });
+});
+
+
+
+function setPlayerAuthToken(email,token){
+    let query = `Update public.users SET token = '${token}' WHERE email = '${email}';`
+    console.log(`email: ${email} , token: ${token}`);
     console.log('=================================================================');
     console.log('QUERY:');
     console.log(query);
@@ -158,14 +205,32 @@ function setPlayerAuthToken(playerName,token){
             console.log('=================================================================');
             console.log('QUERY RESULT: ');
             console.log(result);
-            // if ( result.rowCount == 0 ){
-            //     response.status(401);
-            //     response.send({
-            //         status:"unauthorized",
-            //         message:"Incorrect user name or password."
-            //     });
-            // }else{
-            // }
+        }
+    });
+}
+
+
+function createNewUser(userData){
+    const name = userData.name;
+    const password = userData.password;
+    const email = userData.email;
+    const uuid = v4();
+    let query = `INSERT INTO public."users"(name, password,uuid,email)
+    VALUES ('${name}', '${password}','${uuid}','${email}');`
+    console.log(`email: ${name}`);
+    console.log('=================================================================');
+    console.log('QUERY:');
+    console.log(query);
+    console.log('');
+    console.log('=================================================================');
+    client.query(query,(err, result)=>{
+        if ( !err ){
+            console.log();
+            console.log('=================================================================');
+            console.log('QUERY RESULT: ');
+            console.log(result);
+        }else{
+            console.log('ERROR IN QUERY!')
         }
     });
 }

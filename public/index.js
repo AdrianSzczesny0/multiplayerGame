@@ -1,5 +1,4 @@
 
-const login_modal = document.getElementById('login_modal');
 const show_hide_password_button = document.getElementById('show_hide_password');
 let is_password_shown = false;
 const username_input =  document.getElementById('username');
@@ -34,16 +33,46 @@ function showOrHidePassword(){
     }
 }
 
-async function processLogin(){
+function showHidePassword(){
+    console.log('clicked show pass');
+    const passInput = document.getElementById('repeat_password');
+    if( !is_password_shown ){
+        passInput.classList.remove('fa-eye-slash');
+        passInput.classList.add('fa-eye');
+        passInput.style.setProperty('-webkit-text-security','none');
+        is_password_shown = true;
+    }else{
+        passInput.classList.remove('fa-eye');
+        passInput.classList.add('fa-eye-slash');
+        passInput.style.setProperty('-webkit-text-security','disc');
+        is_password_shown = false;
+    }
+}
 
-    const username = document.getElementById('username').value;
+async function processLogin(){
+    const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const requestBody = {
-        "name":username,
+        "email":email,
         "password":password
     }
-    await sendRequest("auth",'POST',requestBody);
+    await sendLoginRequest("auth",'POST',requestBody);
 }
+
+async function processRegister(){
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const repeatPassword = document.getElementById('repeat_password').value;
+    const requestBody = {
+        "name":username,
+        "email":email,
+        "password":password,
+        "rePass":repeatPassword
+    }
+    await sendRegisterRequest(requestBody);
+}
+
 async function createLoginFormView(){
     const loginFormView = `
     <div class="main" id="login_modal">
@@ -51,8 +80,8 @@ async function createLoginFormView(){
             <div class="form_wrapper">
                 <h1>LOGIN</h1>
                 <div class="input_wrapper">
-                    <span class="fieldName">Username</span>
-                    <input class="input username" id="username" type="text" placeholder="Input username"></input>
+                    <span class="fieldName">Email</span>
+                    <input class="input username" id="email" type="text" placeholder="Input email"></input>
                 </div>
                 <div class="input_wrapper no_bot_padding">
                     <span class="fieldName">Password</span>
@@ -69,7 +98,48 @@ async function createLoginFormView(){
                 </div>
                 <div class="input_wrapper sign_up_wrapper">
                     <hr></hr>
-                    <span class="sign_up" id="sign_up"> SIGN UP</span>
+                    <span class="sign_up" id="sign_up" onClick="moveToRegister();"> SIGN UP</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    const template = document.createElement('template');
+    template.innerHTML = loginFormView.trim();
+    view = template.content.firstElementChild;
+    template.style.opacity=0;
+    document.body.appendChild(view);
+}
+async function createRegisterFormView(){
+    const loginFormView = `
+    <div class="main register_form" id="register_form">
+        <div class="window_wrapper register_wrapper">
+            <div class="form_wrapper">
+                <h1>SIGN UP</h1>
+                <div class="input_wrapper">
+                    <span class="fieldName">Username</span>
+                    <input class="input username" id="username" type="text" placeholder="Input username"></input>
+                </div>
+                <div class="input_wrapper">
+                    <span class="fieldName">E-mail</span>
+                    <input class="input username" id="email" type="text" placeholder="Input user e-mail"></input>
+                </div>
+                <div class="input_wrapper">
+                    <span class="fieldName">Password</span>
+                    <input class="input password" id="password" type="text" placeholder="Input password"></input>
+                </div>
+                <div class="input_wrapper">
+                    <span class="fieldName">Repeat password</span>
+                    <input class="input password" id="repeat_password" type="text" placeholder="Repeat password"></input>
+                    <i class="fa-solid fa-eye-slash" onClick="showHidePassword();"></i>
+                </div>
+                <div class="input_wrapper">
+                    <button class="submit" id="submit" onClick="processRegister();">Submit</button>
+                    
+                </div>
+                <div class="input_wrapper sign_up_wrapper">
+                    <hr></hr>
+                    <span class="sign_up" id="sign_up" onClick="moveToLogin();"> SIGN IN</span>
                 </div>
             </div>
         </div>
@@ -79,6 +149,12 @@ async function createLoginFormView(){
     template.innerHTML = loginFormView.trim();
     view = template.content.firstElementChild;
     document.body.appendChild(view);
+}
+async function clearRegisterFormFields(){
+    document.getElementById('username').value = '';
+    document.getElementById('email').value= '';
+    document.getElementById('password').value= '';
+    document.getElementById('repeat_password').value = '';
 }
 
 async function createGameView(){
@@ -104,7 +180,7 @@ async function removeGameView(){
 }
 
 async function logout(){
-    await removeLocalStorageValue('userName');
+    await removeLocalStorageValue('email');
     await removeLocalStorageValue('auth');
     await removeGameView();
     await createLoginFormView();
@@ -158,7 +234,7 @@ if (iterations == undefined){
 element.remove();
 }
 
-async function sendRequest(route,requestMethod,requestBody){
+async function sendLoginRequest(route,requestMethod,requestBody){
     await fetch(`http://localhost:3100/${route}`, {
         method: requestMethod,
         headers: {
@@ -175,22 +251,68 @@ async function sendRequest(route,requestMethod,requestBody){
             createNoty('error',data.message);
         }else{
             console.log('USER AUTHORIZED');
-            handleSucessfullLogin(data,requestBody.name);
+            handleSucessfullLogin(data,requestBody.email);
         }
     });
 }
+
+async function sendRegisterRequest(requestBody){
+    await fetch(`http://localhost:3100/register`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+    }).then(response => {
+        return response.json();
+    }).then(data => {
+        console.log(data);
+        if( data.status == "fail" ){
+            createNoty('error',data.message);
+        }else{
+            createNoty('success',data.message);
+            clearRegisterFormFields();
+        }
+    });
+}
+
+async function removeLoginForm(){
+    const loginView = await document.getElementById("login_modal");
+    await fadeout(loginView);
+}
+async function removeRegisterView(){
+    const registerView = await document.getElementById("register_form");
+    await fadeout(registerView);
+}
+
+async function moveToRegister(){
+    await removeLoginForm();
+    await delay(200);
+    await createRegisterFormView();
+
+}
+
+async function moveToLogin(){
+    await removeRegisterView();
+    await delay(200);
+    await createLoginFormView();
+
+}
+
 async function addLocalStorageValue(key,value){
     window.localStorage.setItem(key, value);
 }
+
 async function removeLocalStorageValue(key){
     window.localStorage.removeItem(key);
 }
-async function handleSucessfullLogin(data,user_name){
+
+async function handleSucessfullLogin(data,email){
     addLocalStorageValue('auth',data.token);
-    addLocalStorageValue('userName',user_name);
+    addLocalStorageValue('email',email);
     init();
 }
-
 
 async function createNoty(type,message){
     console.log('CREATE NOTY BAR');
@@ -199,6 +321,7 @@ async function createNoty(type,message){
     await delay(1500);
     await fadeout(noty);
 }
+
 async function fadeOutModal(element,iterations){
     await fadeout(element,iterations);
     await element.remove();
@@ -207,7 +330,7 @@ async function fadeOutModal(element,iterations){
 async function init(){
     const requestBody = {
         token: await window.localStorage.getItem('auth'),
-        username: await window.localStorage.getItem('userName')
+        email: await window.localStorage.getItem('email')
     }
     console.log(JSON.stringify(requestBody));
 
@@ -233,6 +356,7 @@ async function init(){
         }
     });
 }
+
 async function handlEnter(){
     document.body.addEventListener("keydown", (ev) =>{
         if(!is_user_logged_in){
@@ -242,7 +366,6 @@ async function handlEnter(){
         }
     });
 }
-
 
 handlEnter();
 init();

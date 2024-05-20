@@ -8,13 +8,36 @@
     <title>Login</title>
 </head>
 <body>
-    <div class="main_logged_in" id="">
-        <div class="header_wrapper">
-            <span class="logout_button" id="logout_button" onclick="logout();">Log out</span>
-        </div>
-        <div class="game_wrapper">
-            <canvas id="game_canvas" class="game_canvas">
-            </canvas>
+    <div class="main register_form" id="register_form">
+        <div class="window_wrapper register_wrapper">
+            <div class="form_wrapper">
+                <h1>SIGN UP</h1>
+                <div class="input_wrapper">
+                    <span class="fieldName">Username</span>
+                    <input class="input username" id="username" type="text" placeholder="Input username"></input>
+                </div>
+                <div class="input_wrapper">
+                    <span class="fieldName">E-mail</span>
+                    <input class="input username" id="email" type="text" placeholder="Input user e-mail"></input>
+                </div>
+                <div class="input_wrapper">
+                    <span class="fieldName">Password</span>
+                    <input class="input password" id="password" type="text" placeholder="Input password"></input>
+                </div>
+                <div class="input_wrapper">
+                    <span class="fieldName">Repeat password</span>
+                    <input class="input password" id="repeat_password" type="text" placeholder="Repeat password"></input>
+                    <i class="fa-solid fa-eye-slash" onClick="showHidePassword();"></i>
+                </div>
+                <div class="input_wrapper">
+                    <button class="submit" id="submit" onClick="processRegister();">Submit</button>
+                    
+                </div>
+                <div class="input_wrapper sign_up_wrapper">
+                    <hr></hr>
+                    <span class="sign_up" id="sign_up" onClick="moveToLogin();"> SIGN IN</span>
+                </div>
+            </div>
         </div>
     </div>
     <script type="text/javascript" src="index.js"> </script>

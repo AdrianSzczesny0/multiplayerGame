@@ -7,7 +7,7 @@ body{
 }
 .window_wrapper{
     position:relative;
-    top: 15%;
+    top: 5%;
     left: 35%;
     width: 30%;
     height: 100%;
@@ -204,6 +204,7 @@ hr {
     justify-content: flex-end;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
+
 .game_wrapper{
     align-items: center;
     display: flex;
@@ -213,17 +214,26 @@ hr {
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 5px 6px 2px;
 
 }
+
 .logout_button{
-    
     padding-right: 15px;
     color:#2f598c
 }
+
 .logout_button:hover{
     color: #60b0e1;
     cursor:pointer;
-
 }
+
 .game_canvas{
     height: 98%;
     width: 100%;
+}
+
+.register_form{
+    height:630px;
+}
+
+.register_wrapper{
+    top:5%;
 }
