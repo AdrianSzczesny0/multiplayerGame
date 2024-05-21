@@ -1,3 +1,4 @@
+import { InputHandler } from './inputHandler.js';
 
 const show_hide_password_button = document.getElementById('show_hide_password');
 let is_password_shown = false;
@@ -6,7 +7,7 @@ const password_input = document.getElementById('password');
 const submit_button =  document.getElementById('submit');
 const reset_password_button = document.getElementById('reset_password');
 let is_user_logged_in = false;
-
+let socket = io();
 show_hide_password_button.addEventListener('click', e => {
     showOrHidePassword();
 });
@@ -14,6 +15,7 @@ show_hide_password_button.addEventListener('click', e => {
 reset_password_button.addEventListener('click', e => {
     openResetPasswordPage();
 });
+
 submit_button.addEventListener('click', e => {
     processLogin();
 });
@@ -169,9 +171,14 @@ async function createGameView(){
     </div>`;
     const template = document.createElement('template');
     template.innerHTML = loggedInView.trim();
-    view = template.content.firstElementChild;
+    const view = template.content.firstElementChild;
     await delay(1000);
-    document.body.appendChild(view);
+    await document.body.appendChild(view);
+    await delay(1000);
+    await initCanvas();
+    await delay(1000);
+    await animate();
+
 }
 
 async function removeGameView(){
@@ -203,7 +210,7 @@ async function createNotyBar(type,message){
     </div>`;
     const template = document.createElement('template');
     template.innerHTML = notyBar.trim();
-    notyBarelement = template.content.firstElementChild;
+    const notyBarelement = template.content.firstElementChild;
     document.body.appendChild(notyBarelement);
     template.classList.add(type);
     return notyBarelement;
@@ -367,6 +374,57 @@ async function handlEnter(){
     });
 }
 
+function handleSockets(){
+    socket.on('connect',function(){
+        console.log('Connected to server');
+    })
+    socket.on('disconnect',function(){
+        console.log('Disconnected to server');
+    })
+}
+// =====================================================================================
+// Game handling
+// =====================================================================================
+
+let input = new InputHandler();
+let canvas = undefined;
+let context = undefined;
+let x=0;
+let y=0;
+async function initCanvas(){
+    if(is_user_logged_in){
+        canvas = await document.getElementById('game_canvas');
+        canvas.width = 1024;
+        canvas.height = 400;
+        await delay(2000);
+        context = await canvas.getContext('2d');
+    }
+}
+
+function update(){
+    handleUserInput();
+    context.clearRect(0,0,1000,1000);
+    context.fillStyle ="Green";
+    context.fillRect(x,y,20,20);
+
+}
+
+function handleUserInput(){
+    console.log(input.keys);
+    if(input.keys.includes('ArrowRight')) x++;
+    if(input.keys.includes('ArrowLeft')) x--;
+    if(input.keys.includes('ArrowUp')) y--;
+    if(input.keys.includes('ArrowDown')) y++;
+}
+
+function animate(){
+    if(is_user_logged_in){
+        requestAnimationFrame(animate);
+        update();
+    }
+}
+handleSockets();
 handlEnter();
 init();
+
 
